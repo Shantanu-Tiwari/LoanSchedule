@@ -5,10 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
+import { useUser } from "@clerk/clerk-react"; // 🔹 Import useUser to get the logged-in user
 
 const AddLoanForm = () => {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
+
+    const { user } = useUser(); // 🔹 Get the current user
 
     const initialLoanState = {
         name: "",
@@ -32,14 +35,20 @@ const AddLoanForm = () => {
         try {
             setLoading(true);
 
-            // Convert numeric fields to numbers
+            if (!user) {
+                alert("You must be signed in to add a loan.");
+                return;
+            }
+
+            // Convert numeric fields to numbers and add clerkId
             const processedLoan = {
                 ...newLoan,
                 amount: Number(newLoan.amount),
                 interestRate: Number(newLoan.interestRate),
                 tenure: Number(newLoan.tenure),
                 emi: Number(newLoan.emi),
-                status: "active"
+                status: "active",
+                clerkId: user.id, // 🔹 Attach the logged-in user's Clerk ID
             };
 
             // Insert into Convex
