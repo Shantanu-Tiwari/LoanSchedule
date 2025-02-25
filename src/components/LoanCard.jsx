@@ -62,11 +62,11 @@ const LoanCard = ({ loan }) => {
                         </TooltipProvider>
 
                         <span
-                            className={`text-sm px-2 py-1 rounded-full ${getStatusColor(loan.status)}`}
+                            className={`text-sm px-2 py-1 rounded-full ${getStatusColor(loan.status || "active")}`}
                             role="status"
                             aria-label={`Loan status: ${loan.status}`}
                         >
-                            {loan.status}
+                            {loan.status || "Active"}
                         </span>
                     </CardTitle>
                 </CardHeader>
@@ -75,14 +75,14 @@ const LoanCard = ({ loan }) => {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <p className="text-sm text-gray-400">Amount</p>
-                            <p className="font-semibold">{formatCurrency(loan.amount)}</p>
+                            <p className="font-semibold">{formatCurrency(Number(loan.amount) || 0)}</p>
                         </div>
                         <div>
                             <p className="text-sm text-gray-400">EMI</p>
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger className="flex items-center gap-1" aria-label="Monthly EMI amount">
-                                        <p className="font-semibold">{formatCurrency(loan.emi)}</p>
+                                        <p className="font-semibold">{formatCurrency(Number(loan.emi) || 0)}</p>
                                         <Info className="w-4 h-4 text-gray-400" />
                                     </TooltipTrigger>
                                     <TooltipContent>
@@ -96,7 +96,7 @@ const LoanCard = ({ loan }) => {
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger className="flex items-center gap-1" aria-label="Annual interest rate">
-                                        <p className="font-semibold">{loan.interestRate}%</p>
+                                        <p className="font-semibold">{(Number(loan.interestRate) || 0).toFixed(2)}%</p>
                                         <Info className="w-4 h-4 text-gray-400" />
                                     </TooltipTrigger>
                                     <TooltipContent>
@@ -118,15 +118,16 @@ const LoanCard = ({ loan }) => {
 
 LoanCard.propTypes = {
     loan: PropTypes.shape({
-        id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+        _id: PropTypes.string.isRequired, // Adjusted for Convex
         name: PropTypes.string.isRequired,
         amount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
         interestRate: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
         startDate: PropTypes.string.isRequired,
         tenure: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
         emi: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
-        status: PropTypes.string.isRequired,
+        status: PropTypes.string,
     }).isRequired,
 };
+
 
 export default LoanCard;

@@ -3,9 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
+import { useMutation } from "convex/react";
+import { api } from "../../convex/_generated/api";
 
-const AddLoanForm = ({ onAddLoan }) => {
+const AddLoanForm = () => {
     const [open, setOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
+
     const initialLoanState = {
         name: "",
         amount: "",
@@ -17,26 +21,39 @@ const AddLoanForm = ({ onAddLoan }) => {
 
     const [newLoan, setNewLoan] = useState(initialLoanState);
 
-    const handleSubmit = () => {
-        // Check if all required fields are filled
+    const addLoan = useMutation(api.loans.insert);
+
+    const handleSubmit = async () => {
         if (Object.values(newLoan).some(value => value === "")) {
             alert("Please fill in all fields.");
             return;
         }
 
-        // Convert numeric fields to numbers and add status
-        const processedLoan = {
-            ...newLoan,
-            amount: Number(newLoan.amount),
-            interestRate: Number(newLoan.interestRate),
-            tenure: Number(newLoan.tenure),
-            emi: Number(newLoan.emi),
-            status: "active"
-        };
+        try {
+            setLoading(true);
 
-        onAddLoan(processedLoan);
-        setNewLoan(initialLoanState); // Reset form
-        setOpen(false); // Close dialog after submission
+            // Convert numeric fields to numbers
+            const processedLoan = {
+                ...newLoan,
+                amount: Number(newLoan.amount),
+                interestRate: Number(newLoan.interestRate),
+                tenure: Number(newLoan.tenure),
+                emi: Number(newLoan.emi),
+                status: "active"
+            };
+
+            // Insert into Convex
+            await addLoan(processedLoan);
+
+            // Reset form
+            setNewLoan(initialLoanState);
+            setOpen(false);
+        } catch (error) {
+            console.error("Error adding loan:", error);
+            alert("Failed to add loan. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -88,9 +105,10 @@ const AddLoanForm = ({ onAddLoan }) => {
                     />
                     <Button
                         onClick={handleSubmit}
+                        disabled={loading}
                         className="w-full bg-[#6361F1] hover:bg-[#4f4bd4]"
                     >
-                        Add Loan
+                        {loading ? "Adding..." : "Add Loan"}
                     </Button>
                 </div>
             </DialogContent>

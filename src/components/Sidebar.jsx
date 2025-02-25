@@ -1,11 +1,12 @@
-import { BarChart2, Calendar, Menu } from "lucide-react";
+import { BarChart2, Settings, Calendar, Menu } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
 const SIDEBAR_ITEMS = [
     { name: "Overview", icon: BarChart2, color: "#6361f1", href: "/" },
     { name: "Schedule", icon: Calendar, color: "#3B82F6", href: "/schedule" },
-    ];
+    { name: "Settings", icon: Settings, color: "#6EE7B7", href: "/settings" },
+];
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
     return (
