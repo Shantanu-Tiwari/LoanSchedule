@@ -1,14 +1,21 @@
 import { mutation, query } from "./_generated/server.js";
 import { v } from "convex/values";
 
-// ✅ Fetch all loans
+// ✅ Fetch loans for the authenticated user
 export const getAll = query({
     handler: async (ctx) => {
-        return await ctx.db.query("loans").collect();
+        const user = await ctx.auth.getUserIdentity();
+        if (!user) {
+            throw new Error("User not authenticated");
+        }
+
+        return await ctx.db.query("loans")
+            .filter(q => q.eq(q.field("userId"), user.subject))
+            .collect();
     },
 });
 
-// ✅ Insert a new loan
+// ✅ Insert a new loan (linked to the user)
 export const insert = mutation({
     args: {
         name: v.string(),
@@ -20,6 +27,14 @@ export const insert = mutation({
         status: v.union(v.literal("active"), v.literal("closed")),
     },
     handler: async (ctx, args) => {
-        return await ctx.db.insert("loans", args);
+        const user = await ctx.auth.getUserIdentity();
+        if (!user) {
+            throw new Error("User not authenticated");
+        }
+
+        return await ctx.db.insert("loans", {
+            ...args,
+            userId: user.subject, // Store the authenticated user's ID
+        });
     },
 });

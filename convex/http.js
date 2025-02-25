@@ -4,93 +4,87 @@ import { httpAction } from "./_generated/server.js";
 
 const http = httpRouter();
 
-// ✅ Fetch all loans
+// ✅ Fetch loans (only those created by the logged-in user)
 http.route({
     path: "/loans",
     method: "GET",
-    handler: async ({ db }) => {
-        const loans = await db.query("loans").collect();
+    handler: async ({ db, auth }) => {
+        const user = await auth.getUserIdentity();
+        if (!user) {
+            return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+        }
+
+        const loans = await db
+            .query("loans")
+            .withIndex("by_clerkId", (q) => q.eq("clerkId", user.subject))
+            .collect();
+
         return new Response(JSON.stringify(loans), {
             headers: { "Content-Type": "application/json" },
         });
     },
 });
 
-// ✅ Add a new loan
+// ✅ Add a new loan (only if user is logged in)
 http.route({
     path: "/loans",
     method: "POST",
-    handler: async ({ db }, req) => {
+    handler: async ({ db, auth }, req) => {
         try {
+            const user = await auth.getUserIdentity();
+            if (!user) {
+                return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+            }
+
             const args = await req.json();
             const { name, amount, interestRate, startDate, tenure, emi, status } = args;
 
-            // Validate required fields
             if (!name || !amount || !interestRate || !startDate || !tenure || !emi || !status) {
                 return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400 });
             }
 
-            const loanId = await db.insert("loans", { name, amount, interestRate, startDate, tenure, emi, status });
-            return new Response(JSON.stringify({ loanId }), { headers: { "Content-Type": "application/json" } });
+            const loanId = await db.insert("loans", {
+                name,
+                amount,
+                interestRate,
+                startDate,
+                tenure,
+                emi,
+                status,
+                clerkId: user.subject, // Associate the loan with the user
+            });
+
+            return new Response(JSON.stringify({ loanId }), {
+                headers: { "Content-Type": "application/json" },
+            });
         } catch (error) {
             return new Response(JSON.stringify({ error: "Invalid request" }), { status: 400 });
         }
     },
 });
 
-// ✅ Update a loan by ID
-http.route({
-    path: "/loans/:id",
-    method: "PATCH",
-    handler: async ({ db, req, params }) => {
-        try {
-            const updates = await req.json();
-            const { id } = params; // Extract ID from URL
-
-            await db.patch(id, updates);
-            return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
-        } catch (error) {
-            return new Response(JSON.stringify({ error: "Update failed" }), { status: 400 });
-        }
-    },
-});
-
-// ✅ Delete a loan by ID
+// ✅ Delete a loan (only if it belongs to the user)
 http.route({
     path: "/loans/:id",
     method: "DELETE",
-    handler: async ({ db, params }) => {
-        try {
-            const { id } = params; // Extract ID from URL
-            await db.delete(id);
-            return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
-        } catch (error) {
-            return new Response(JSON.stringify({ error: "Delete failed" }), { status: 400 });
+    handler: async ({ db, auth, params }) => {
+        const user = await auth.getUserIdentity();
+        if (!user) {
+            return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
         }
-    },
-});
 
-// ✅ Fetch user details by Clerk ID
-http.route({
-    path: "/users/:clerkId",
-    method: "GET",
-    handler: async ({ db, params }) => {
-        try {
-            const { clerkId } = params; // Extract clerkId from URL
-
-            const user = await db
-                .query("users")
-                .withIndex("by_clerkId", (q) => q.eq("clerkId", clerkId))
-                .first();
-
-            if (!user) {
-                return new Response(JSON.stringify({ error: "User not found" }), { status: 404 });
-            }
-
-            return new Response(JSON.stringify(user), { headers: { "Content-Type": "application/json" } });
-        } catch (error) {
-            return new Response(JSON.stringify({ error: "Request failed" }), { status: 400 });
+        const { id } = params;
+        const loan = await db.get(id);
+        if (!loan) {
+            return new Response(JSON.stringify({ error: "Loan not found" }), { status: 404 });
         }
+
+        if (loan.clerkId !== user.subject) {
+            return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+        }
+
+        await db.delete(id);
+        return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
     },
 });
 

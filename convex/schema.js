@@ -10,7 +10,8 @@ export default defineSchema({
         tenure: v.number(),            // Loan tenure in months
         emi: v.number(),               // Monthly EMI amount
         status: v.union(v.literal("active"), v.literal("closed")), // Loan status
-    }),
+        clerkId: v.string(),
+    }).index("by_clerkId", ["clerkId"]),
     users: defineTable({
         name: v.string(),
         email: v.string(),

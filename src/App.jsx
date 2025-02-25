@@ -11,19 +11,20 @@ import { useUser } from "@clerk/clerk-react";
 function App() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const { user, isSignedIn } = useUser();
-    const syncUser = useMutation(api.users.syncUser);
-    const tasks = useQuery(api.tasks.get);
+    const syncUser = useMutation(api.users?.syncUser);
+    const loans = useQuery(api.loans.getAll);
 
     // Sync user to Convex when they log in
     useEffect(() => {
-        if (user) {
+        if (user && syncUser) {
             syncUser({
                 clerkId: user.id,
-                email: user.primaryEmailAddress.emailAddress,
+                email: user.primaryEmailAddress?.emailAddress || "unknown",
                 name: user.fullName || "Unnamed User",
             });
         }
     }, [user, syncUser]);
+
     if (!isSignedIn) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
