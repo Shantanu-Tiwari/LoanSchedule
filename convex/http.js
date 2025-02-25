@@ -10,6 +10,8 @@ http.route({
     method: "GET",
     handler: async ({ db, auth }) => {
         const user = await auth.getUserIdentity();
+        console.log("GET /loans - User Identity:", user); // Debugging log
+
         if (!user) {
             return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
         }
@@ -32,6 +34,8 @@ http.route({
     handler: async ({ db, auth }, req) => {
         try {
             const user = await auth.getUserIdentity();
+            console.log("POST /loans - User Identity:", user); // Debugging log
+
             if (!user) {
                 return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
             }
@@ -41,6 +45,10 @@ http.route({
 
             if (!name || !amount || !interestRate || !startDate || !tenure || !emi || !status) {
                 return new Response(JSON.stringify({ error: "Missing required fields" }), { status: 400 });
+            }
+
+            if (!user.subject) {
+                return new Response(JSON.stringify({ error: "User ID (clerkId) is missing" }), { status: 500 });
             }
 
             const loanId = await db.insert("loans", {
@@ -54,10 +62,12 @@ http.route({
                 clerkId: user.subject, // Associate the loan with the user
             });
 
+            console.log("POST /loans - Loan Inserted with ID:", loanId);
             return new Response(JSON.stringify({ loanId }), {
                 headers: { "Content-Type": "application/json" },
             });
         } catch (error) {
+            console.error("POST /loans - Error:", error);
             return new Response(JSON.stringify({ error: "Invalid request" }), { status: 400 });
         }
     },
@@ -69,6 +79,8 @@ http.route({
     method: "DELETE",
     handler: async ({ db, auth, params }) => {
         const user = await auth.getUserIdentity();
+        console.log("DELETE /loans - User Identity:", user);
+
         if (!user) {
             return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
         }
@@ -84,6 +96,7 @@ http.route({
         }
 
         await db.delete(id);
+        console.log("DELETE /loans - Loan Deleted:", id);
         return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
     },
 });
