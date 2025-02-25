@@ -2,12 +2,10 @@ import PropTypes from "prop-types";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info, Trash, Pencil } from "lucide-react";
+import { Info, Trash } from "lucide-react";
 import { useMutation } from "convex/react";
-import { api} from "../../convex/_generated/api.js";
+import { api } from "../../convex/_generated/api.js";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-//import EditLoanForm from "./EditLoanForm"; // ✅ Import Edit Loan Form
 
 const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
@@ -23,7 +21,7 @@ const getStatusColor = (status) => {
 };
 
 const formatCurrency = (value) => {
-    const numericValue = typeof value === 'string' ? parseFloat(value) : value;
+    const numericValue = typeof value === "string" ? parseFloat(value) : value;
     return new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
@@ -45,7 +43,6 @@ const formatDate = (date) => {
 
 const LoanCard = ({ loan }) => {
     const removeLoan = useMutation(api.loans.remove);
-    //const [isEditing, setIsEditing] = useState(false);
 
     const handleDelete = async () => {
         if (confirm("Are you sure you want to delete this loan?")) {
@@ -117,19 +114,14 @@ const LoanCard = ({ loan }) => {
                         </div>
                     </div>
 
-                    <div className="flex justify-between mt-4">
-                        {/*<Button variant="secondary" size="sm" onClick={() => setIsEditing(true)}>*/}
-                        {/*    <Pencil className="w-4 h-4 mr-2" /> Edit*/}
-                        {/*</Button>*/}
-                        {/*<Button variant="destructive" size="sm" onClick={handleDelete}>*/}
-                        {/*    <Trash className="w-4 h-4 mr-2" /> Delete*/}
-                        {/*</Button>*/}
+                    {/* Keep only the delete button */}
+                    <div className="flex justify-end mt-4">
+                        <Button variant="destructive" size="sm" onClick={handleDelete}>
+                            <Trash className="w-4 h-4 mr-2" /> Delete
+                        </Button>
                     </div>
                 </CardContent>
             </Card>
-
-            {/* Edit Loan Modal */}
-            {/*{isEditing && <EditLoanForm loan={loan} onClose={() => setIsEditing(false)} />}*/}
         </motion.div>
     );
 };
