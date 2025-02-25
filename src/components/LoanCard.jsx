@@ -2,7 +2,12 @@ import PropTypes from "prop-types";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
+import { Info, Trash, Pencil } from "lucide-react";
+import { useMutation } from "convex/react";
+import { api} from "../../convex/_generated/api.js";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import EditLoanForm from "./EditLoanForm"; // ✅ Import Edit Loan Form
 
 const getStatusColor = (status) => {
     switch (status.toLowerCase()) {
@@ -39,12 +44,17 @@ const formatDate = (date) => {
 };
 
 const LoanCard = ({ loan }) => {
+    const removeLoan = useMutation(api.loans.remove);
+    const [isEditing, setIsEditing] = useState(false);
+
+    const handleDelete = async () => {
+        if (confirm("Are you sure you want to delete this loan?")) {
+            await removeLoan({ loanId: loan._id });
+        }
+    };
+
     return (
-        <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full"
-        >
+        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full">
             <Card className="border border-gray-700 shadow-lg bg-gray-900 text-white rounded-xl p-4 h-full">
                 <CardHeader className="p-0">
                     <CardTitle className="flex items-center justify-between">
@@ -61,11 +71,7 @@ const LoanCard = ({ loan }) => {
                             </Tooltip>
                         </TooltipProvider>
 
-                        <span
-                            className={`text-sm px-2 py-1 rounded-full ${getStatusColor(loan.status || "active")}`}
-                            role="status"
-                            aria-label={`Loan status: ${loan.status}`}
-                        >
+                        <span className={`text-sm px-2 py-1 rounded-full ${getStatusColor(loan.status || "active")}`} role="status">
                             {loan.status || "Active"}
                         </span>
                     </CardTitle>
@@ -95,7 +101,7 @@ const LoanCard = ({ loan }) => {
                             <p className="text-sm text-gray-400">Interest Rate</p>
                             <TooltipProvider>
                                 <Tooltip>
-                                    <TooltipTrigger className="flex items-center gap-1" aria-label="Annual interest rate">
+                                    <TooltipTrigger className="flex items-center gap-1">
                                         <p className="font-semibold">{(Number(loan.interestRate) || 0).toFixed(2)}%</p>
                                         <Info className="w-4 h-4 text-gray-400" />
                                     </TooltipTrigger>
@@ -110,15 +116,27 @@ const LoanCard = ({ loan }) => {
                             <p className="font-semibold">{formatDate(loan.startDate)}</p>
                         </div>
                     </div>
+
+                    <div className="flex justify-between mt-4">
+                        <Button variant="secondary" size="sm" onClick={() => setIsEditing(true)}>
+                            <Pencil className="w-4 h-4 mr-2" /> Edit
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={handleDelete}>
+                            <Trash className="w-4 h-4 mr-2" /> Delete
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
+
+            {/* Edit Loan Modal */}
+            {isEditing && <EditLoanForm loan={loan} onClose={() => setIsEditing(false)} />}
         </motion.div>
     );
 };
 
 LoanCard.propTypes = {
     loan: PropTypes.shape({
-        _id: PropTypes.string.isRequired, // Adjusted for Convex
+        _id: PropTypes.string.isRequired,
         name: PropTypes.string.isRequired,
         amount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
         interestRate: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
@@ -128,6 +146,5 @@ LoanCard.propTypes = {
         status: PropTypes.string,
     }).isRequired,
 };
-
 
 export default LoanCard;

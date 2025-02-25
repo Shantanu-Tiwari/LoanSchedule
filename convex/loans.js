@@ -25,32 +25,18 @@ export const insert = mutation({
         tenure: v.number(),
         emi: v.number(),
         status: v.union(v.literal("active"), v.literal("closed")),
+        clerkId: v.string(), // ✅ Add this
     },
     handler: async (ctx, args) => {
         const user = await ctx.auth.getUserIdentity();
-
-        console.log("INSERT /loans - User Identity:", user); // Debugging log
-
-        if (!user || !user.subject) {
-            throw new Error("User not authenticated or Clerk ID missing");
+        if (!user) {
+            throw new Error("User not authenticated");
         }
 
-        if (
-            isNaN(args.amount) ||
-            isNaN(args.interestRate) ||
-            isNaN(args.tenure) ||
-            isNaN(args.emi)
-        ) {
-            throw new Error("Invalid number value in loan details");
-        }
-
-        const loanId = await ctx.db.insert("loans", {
+        return await ctx.db.insert("loans", {
             ...args,
-            clerkId: user.subject, // Ensure clerkId is stored correctly
+            clerkId: user.subject, // ✅ Store the authenticated user's Clerk ID
         });
-
-        console.log("Loan added successfully with ID:", loanId);
-        return loanId;
     },
 });
 

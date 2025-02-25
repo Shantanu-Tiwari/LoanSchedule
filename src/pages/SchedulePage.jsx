@@ -84,7 +84,7 @@ const SchedulePage = () => {
                         <CardTitle className="text-xl font-semibold">Monthly Overview</CardTitle>
                         <div className="flex gap-4">
                             <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
-                                <SelectTrigger className="w-40">
+                                <SelectTrigger className="w-40 bg-white text-black">
                                     <SelectValue>{months[selectedMonth]}</SelectValue>
                                 </SelectTrigger>
                                 <SelectContent>
@@ -95,7 +95,7 @@ const SchedulePage = () => {
                             </Select>
 
                             <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
-                                <SelectTrigger className="w-32">
+                                <SelectTrigger className="w-32 bg-white text-black">
                                     <SelectValue>{selectedYear}</SelectValue>
                                 </SelectTrigger>
                                 <SelectContent>

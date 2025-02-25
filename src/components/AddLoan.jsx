@@ -5,8 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { useUser } from "@clerk/clerk-react"; // 🔹 Import useUser to get the logged-in user
-
+import { useUser } from "@clerk/clerk-react";
 const AddLoanForm = () => {
     const [open, setOpen] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -96,6 +95,7 @@ const AddLoanForm = () => {
                         onChange={(e) => setNewLoan({ ...newLoan, interestRate: e.target.value })}
                     />
                     <Input
+                        className="bg-white"
                         type="date"
                         value={newLoan.startDate}
                         onChange={(e) => setNewLoan({ ...newLoan, startDate: e.target.value })}
