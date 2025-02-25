@@ -87,7 +87,7 @@ const SchedulePage = () => {
                                 <SelectTrigger className="w-40 bg-white text-black">
                                     <SelectValue>{months[selectedMonth]}</SelectValue>
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="bg-white text-black">
                                     {months.map((month, index) => (
                                         <SelectItem key={index} value={index.toString()}>{month}</SelectItem>
                                     ))}
@@ -98,7 +98,7 @@ const SchedulePage = () => {
                                 <SelectTrigger className="w-32 bg-white text-black">
                                     <SelectValue>{selectedYear}</SelectValue>
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="bg-white text-black">
                                     {years.map((year) => (
                                         <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
                                     ))}

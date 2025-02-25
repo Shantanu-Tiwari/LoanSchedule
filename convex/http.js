@@ -100,5 +100,40 @@ http.route({
         return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
     },
 });
+http.route({
+    path: "/loans/:id",
+    method: "PATCH",
+    handler: async ({ db, auth, params }, req) => {
+        try {
+            const user = await auth.getUserIdentity();
+            console.log("PATCH /loans - User Identity:", user);
+
+            if (!user) {
+                return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+            }
+
+            const { id } = params;
+            const loan = await db.get(id);
+            if (!loan) {
+                return new Response(JSON.stringify({ error: "Loan not found" }), { status: 404 });
+            }
+
+            if (loan.clerkId !== user.subject) {
+                return new Response(JSON.stringify({ error: "Forbidden" }), { status: 403 });
+            }
+
+            const updates = await req.json();
+            console.log("PATCH /loans - Updates:", updates);
+
+            await db.patch(id, updates);
+
+            console.log("PATCH /loans - Loan Updated:", id);
+            return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
+        } catch (error) {
+            console.error("PATCH /loans - Error:", error);
+            return new Response(JSON.stringify({ error: "Invalid request" }), { status: 400 });
+        }
+    },
+});
 
 export default http;

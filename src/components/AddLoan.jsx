@@ -95,7 +95,7 @@ const AddLoanForm = () => {
                         onChange={(e) => setNewLoan({ ...newLoan, interestRate: e.target.value })}
                     />
                     <Input
-                        className="bg-white"
+                        className="bg-gray"
                         type="date"
                         value={newLoan.startDate}
                         onChange={(e) => setNewLoan({ ...newLoan, startDate: e.target.value })}
